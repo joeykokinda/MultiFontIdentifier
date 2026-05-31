@@ -1,28 +1,24 @@
 import numpy as np
 from PIL import Image
-from paddleocr import PaddleOCR
+import easyocr
 
-_ocr = None
+_reader = None
 
 
-def _get_ocr():
-    global _ocr
-    if _ocr is None:
-        _ocr = PaddleOCR(use_angle_cls=False, lang="en", show_log=False)
-    return _ocr
+def _get_reader():
+    global _reader
+    if _reader is None:
+        _reader = easyocr.Reader(["en"], gpu=True, verbose=False)
+    return _reader
 
 
 def detect_text_regions(image: Image.Image) -> list[dict]:
-    ocr = _get_ocr()
+    reader = _get_reader()
     img_array = np.array(image.convert("RGB"))
-    result = ocr.ocr(img_array, cls=False)
+    results = reader.readtext(img_array)
 
     regions = []
-    if not result or not result[0]:
-        return regions
-
-    for line in result[0]:
-        points, (text, confidence) = line
+    for (points, text, confidence) in results:
         pts = np.array(points, dtype=np.float32)
         x1 = int(pts[:, 0].min())
         y1 = int(pts[:, 1].min())

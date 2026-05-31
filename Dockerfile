@@ -13,12 +13,16 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pre-download models at build time so startup is fast
 COPY . .
-RUN python -c "from paddleocr import PaddleOCR; PaddleOCR(use_angle_cls=False, lang='en', show_log=False)"
-RUN python -c "from transformers import ViTForImageClassification, ViTImageProcessor; \
-    ViTImageProcessor.from_pretrained('Storia-AI/font-classify', cache_dir='models'); \
-    ViTForImageClassification.from_pretrained('Storia-AI/font-classify', cache_dir='models')"
+
+# Pre-download models at build time so startup is instant
+RUN python -c "\
+import easyocr; easyocr.Reader(['en'], gpu=False, verbose=False); \
+from huggingface_hub import hf_hub_download; \
+import yaml; \
+hf_hub_download('storia/font-classify-onnx', 'model.onnx',         cache_dir='models'); \
+hf_hub_download('storia/font-classify-onnx', 'model_config.yaml',  cache_dir='models'); \
+"
 
 EXPOSE 8000
 
