@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+models/
+images/*.png
+images/*.jpg
+images/*.jpeg
+images/*.webp
+!images/.gitkeep
+.env
+*.log

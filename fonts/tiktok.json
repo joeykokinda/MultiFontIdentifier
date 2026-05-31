@@ -1,0 +1,14 @@
+[
+  {"name": "TikTok Classic", "tiktok_id": "classic", "google_font_equivalent": "Proxima Nova", "fallback_google": "Nunito Sans", "style": "Bold"},
+  {"name": "TikTok Typewriter", "tiktok_id": "typewriter", "google_font_equivalent": "Courier Prime", "fallback_google": "Courier Prime", "style": "Regular"},
+  {"name": "TikTok Neon", "tiktok_id": "neon", "google_font_equivalent": "Bebas Neue", "fallback_google": "Oswald", "style": "Regular"},
+  {"name": "TikTok Serif", "tiktok_id": "serif", "google_font_equivalent": "PT Serif", "fallback_google": "Lora", "style": "Regular"},
+  {"name": "TikTok Handwriting", "tiktok_id": "handwriting", "google_font_equivalent": "Caveat", "fallback_google": "Indie Flower", "style": "Regular"},
+  {"name": "TikTok Bold", "tiktok_id": "bold", "google_font_equivalent": "Montserrat", "fallback_google": "Raleway", "style": "ExtraBold"},
+  {"name": "TikTok Condensed", "tiktok_id": "condensed", "google_font_equivalent": "Barlow Condensed", "fallback_google": "Roboto Condensed", "style": "Bold"},
+  {"name": "TikTok Round", "tiktok_id": "round", "google_font_equivalent": "Nunito", "fallback_google": "Varela Round", "style": "Bold"},
+  {"name": "TikTok Display", "tiktok_id": "display", "google_font_equivalent": "Playfair Display", "fallback_google": "Cormorant", "style": "Bold"},
+  {"name": "TikTok Sans", "tiktok_id": "sans", "google_font_equivalent": "Inter", "fallback_google": "Roboto", "style": "Regular"},
+  {"name": "TikTok Outlined", "tiktok_id": "outlined", "google_font_equivalent": "Bebas Neue", "fallback_google": "Anton", "style": "Regular"},
+  {"name": "TikTok Script", "tiktok_id": "script", "google_font_equivalent": "Dancing Script", "fallback_google": "Pacifico", "style": "Bold"}
+]
