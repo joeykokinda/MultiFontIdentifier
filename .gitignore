@@ -11,3 +11,5 @@ images/*.webp
 !images/.gitkeep
 .env
 *.log
+fonts/ttf/
+!fonts/ttf/.gitkeep
