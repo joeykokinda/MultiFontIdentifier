@@ -61,7 +61,7 @@ EXTRA = [
     "Encode Sans Condensed", "Kaushan Script", "Shadows Into Light",
     "Patrick Hand", "Rock Salt", "Reenie Beanie", "Architects Daughter",
     "Handlee", "Covered By Your Grace", "Just Another Hand",
-    "Michroma", "Share Tech Mono", "Sigmar One", "League Gothic",
+    "Michroma", "Share Tech Mono", "Sigmar One", "League Gothic", "League Spartan",
     "Indie Flower", "Permanent Marker", "Lobster", "Pacifico",
     "Dancing Script", "Oswald", "Raleway", "Montserrat", "Poppins",
     "Lato", "Inter", "Roboto", "Open Sans", "Nunito", "Playfair Display",

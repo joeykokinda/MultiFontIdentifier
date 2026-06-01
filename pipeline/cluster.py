@@ -30,16 +30,28 @@ def aggregate_cluster(classified_regions: list[dict], cluster_indices: list[int]
     total = sum(font_scores.values())
     confidence = font_scores[best_font] / total if total > 0 else 0.0
 
+    # Pick the highest-scoring candidate that actually belongs to the winning
+    # family, so the reported style + TTF stem match the reported font.
+    winner = None
+    for idx in cluster_indices:
+        for candidate in classified_regions[idx]["top5"]:
+            raw = candidate["font"]
+            base = raw.split("-")[0].strip() if "-" in raw else raw
+            if base != best_font:
+                continue
+            if winner is None or candidate["confidence"] > winner["confidence"]:
+                winner = candidate
+
     top_raw = classified_regions[cluster_indices[0]]["top5"][0]["font"]
-    style = "Regular"
-    for kw in STYLE_KEYWORDS:
-        if kw in top_raw:
-            style = kw
-            break
+    if winner and winner.get("style"):
+        style = winner["style"]
+    else:
+        style = next((kw for kw in STYLE_KEYWORDS if kw in top_raw), "Regular")
 
     return {
         "font": best_font,
         "style": style,
         "is_italic": "Italic" in top_raw or "Oblique" in top_raw,
         "confidence": round(confidence, 4),
+        "raw": (winner or {}).get("raw"),
     }

@@ -75,12 +75,16 @@ def classify_crops(crops: list[Image.Image], regions: list[dict] | None = None) 
 
             if text:
                 # Get the cleaned mask for comparison (same mask used for ViT)
-                from pipeline.normalize import normalize_crop
                 orig_image = region.get("_image")   # injected by the caller
                 if orig_image is not None:
-                    rgb      = np.array(orig_image.crop(box).convert("RGB"))
-                    mask     = extract_text_mask(rgb)
-                    render_matches = match_fonts(text, mask, font_size_px=font_h, top_n=5)
+                    rgb   = np.array(orig_image.crop(box).convert("RGB"))
+                    mask  = extract_text_mask(rgb)
+                    raw   = match_fonts(text, mask, font_size_px=font_h, top_n=5)
+                    render_matches = [
+                        {"font": m["font"], "confidence": m["score"],
+                         "style": m["style"], "raw": m["raw"]}
+                        for m in raw
+                    ]
 
         results.append({
             "model_top5":    model_top5,

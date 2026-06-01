@@ -76,66 +76,100 @@ curl -X POST http://localhost:8000/detect/base64 \
 {
   "fonts_detected": [
     {
-      "font": "Montserrat",
-      "style": "ExtraBold",
+      "font": "League Spartan",
+      "style": "Black",
       "is_italic": false,
-      "confidence": 0.91,
-      "source": "canva_popular",
+      "confidence": 0.22,
+      "layout": {
+        "block_region": [90, 213, 770, 286],
+        "text_align": "center",
+        "horizontal_position": "center",
+        "vertical_position": "middle"
+      },
       "instances": [
         {
-          "region": [120, 80, 640, 150],
-          "font_size_px": 70,
-          "text": "THIS IS THE HEADLINE",
+          "region": [90, 213, 770, 286],
+          "text": "keep track of your workouts",
+          "case": "lower",
+          "font_size_px": 78,
+          "text_ink_height_px": 73,
+          "letter_spacing_px": -12.9,
+          "letter_spacing_em": -0.165,
+          "word_spacing_px": 12.5,
+          "word_spacing_em": 0.16,
+          "weight": 900,
+          "width_class": "normal",
+          "rotation_deg": 0.0,
+          "slant_deg": 0.0,
+          "text_color": "#EDEDEE",
           "background": "black_box",
           "background_color": "#000000",
-          "text_color": "#FFFFFF",
-          "has_outline": false,
-          "outline_color": null
-        }
-      ]
-    },
-    {
-      "font": "Playfair Display",
-      "style": "Italic",
-      "is_italic": true,
-      "confidence": 0.84,
-      "source": "canva_popular",
-      "instances": [
-        {
-          "region": [180, 230, 710, 290],
-          "font_size_px": 32,
-          "text": "and this is the subtext",
-          "background": "none",
-          "background_color": null,
-          "text_color": "#F5F5F5",
           "has_outline": true,
-          "outline_color": "#000000"
+          "outline_color": "#0B0B0B",
+          "underline": false,
+          "strikethrough": false,
+          "font_verification": {
+            "verdict": "likely",
+            "confidence": 0.18,
+            "match_score": 0.216,
+            "alternatives": ["Jost", "Rowdies", "Fredoka One"]
+          }
         }
       ]
     }
   ],
-  "unknown_regions": []
+  "text_blocks": [
+    {
+      "block_region": [90, 142, 770, 286],
+      "text_align": "center",
+      "line_spacing_px": 71.0,
+      "line_height_ratio": 1.05,
+      "horizontal_position": "center",
+      "vertical_position": "middle",
+      "line_count": 2,
+      "lines": [
+        {"region": [174, 142, 617, 206], "text": "Download FitAI", "offset_from_block_px": 0.5}
+      ]
+    }
+  ],
+  "verification": {"verdict": "likely", "confidence": 0.2}
 }
 ```
+
+`fonts_detected` groups lines by font; `text_blocks` groups lines into visual
+paragraphs (alignment + line spacing) independent of font. Every line carries a
+`font_verification` and the image carries an overall `verification`, so a caller
+never has to trust a value the matcher couldn't confirm.
 
 ### Response field reference
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `font` | string | Font family name (e.g. `"Montserrat"`, `"TikTok Typewriter"`) |
+| `font` | string | Font family name, matched by rendering it and comparing letterform shape (DTW over column ink-profiles) against the image |
 | `style` | string | Weight/style variant: `Bold`, `ExtraBold`, `Black`, `SemiBold`, `Regular` |
 | `is_italic` | bool | Whether the text is italicized |
-| `confidence` | float | 0.0–1.0. Above 0.7 is high confidence. 0.3–0.7 is a best estimate |
-| `source` | string | Which database matched: `tiktok`, `capcut`, `canva_popular`, `google_fonts` |
-| `nearest_google_font` | string | Only present for TikTok native fonts. The closest Google Font equivalent |
+| `confidence` | float | 0.0–1.0 share of the cluster's match mass for this family |
+| `classification` | object | Family-level call: `category` (serif/sans-serif/slab-serif/display/script/monospace), `style_class` (e.g. `"Old-style serif (Garamond-style)"`, `"Geometric sans-serif"`), `family_confidence` and `match_confidence` (`high`/`medium`/`low`), `best_match`, `alternatives`. The family is usually more certain than the exact font. |
+| `layout` | object | Block geometry for this font: `text_align`, `line_spacing_px`, `line_height_ratio`, `block_region`, `horizontal_position`, `vertical_position` |
 | `instances[].region` | int[4] | Bounding box `[x1, y1, x2, y2]` in pixels |
-| `instances[].font_size_px` | int | Approximate cap height in pixels (bounding box height) |
 | `instances[].text` | string | The detected text content in this region |
-| `instances[].background` | string | `"black_box"`, `"white_box"`, `"colored_box"`, or `"none"` |
-| `instances[].background_color` | string or null | Hex color of the background box, e.g. `"#000000"` |
-| `instances[].text_color` | string | Hex color of the text fill, e.g. `"#FFFFFF"` |
-| `instances[].has_outline` | bool | Whether the text has a stroke/outline effect |
-| `instances[].outline_color` | string or null | Hex color of the outline, e.g. `"#1A1A1A"` |
+| `instances[].case` | string | `upper`, `lower`, `title`, `sentence`, or `mixed` |
+| `instances[].font_size_px` | int | Font size in px, **fitted** by rendering the matched font to the ink height |
+| `instances[].text_ink_height_px` | int | Measured cap/ascender ink height |
+| `instances[].letter_spacing_px` / `_em` | float | Tracking vs the matched font's natural advance (negative = tighter) |
+| `instances[].word_spacing_px` / `_em` | float or null | Median inter-word gap (null for single words) |
+| `instances[].weight` | int | Numeric weight 100–900, from the matched style |
+| `instances[].width_class` | string | `condensed`, `normal`, or `expanded` |
+| `instances[].rotation_deg` | float | Baseline rotation from the OCR quad |
+| `instances[].slant_deg` | float | Faux-italic slant estimate (0 within ±2°) |
+| `instances[].text_color` | string | Hex color of the text fill |
+| `instances[].background` | string | `"black_box"`, `"white_box"`, `"colored_box"`, `"photo"` (text over an image, no box), or `"none"` |
+| `instances[].background_color` | string or null | Hex color of the box (null for `photo`/`none`) |
+| `instances[].has_outline` / `outline_color` | bool / string | Stroke/outline effect and its hex color |
+| `instances[].underline` / `strikethrough` | bool | Text decoration |
+| `instances[].font_verification` | object | `verdict` (`verified`/`likely`/`uncertain`), `confidence`, `match_score`, and `alternatives` (runner-up families) |
+| `text_blocks[]` | object[] | Visual paragraphs (font-independent): alignment, line spacing, and per-line `offset_from_block_px` |
+| `verification` | object | Image-level `verdict` + `confidence` (worst line) |
 
 ### `GET /fonts` — list all known fonts
 

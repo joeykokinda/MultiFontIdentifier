@@ -5,16 +5,41 @@ from PIL import Image
 TARGET = 320
 
 
+def background_is_light(rgb: np.ndarray) -> bool:
+    """Estimate background luminance from the crop border (text rarely touches it)."""
+    gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
+    h, w = gray.shape
+    b = max(1, min(2, h // 4, w // 4))
+    border = np.concatenate([
+        gray[:b, :].ravel(), gray[-b:, :].ravel(),
+        gray[:, :b].ravel(), gray[:, -b:].ravel(),
+    ])
+    return float(np.median(border)) > 127
+
+
+def text_pixel_mask(rgb: np.ndarray) -> np.ndarray:
+    """
+    Boolean mask (True = text ink), polarity-aware.
+
+    Works for both light-text-on-dark (TikTok/IG) and dark-text-on-light
+    (e-commerce / Canva white slides). The text class is whichever side of an
+    Otsu split is opposite the background; saturated pixels count as text too.
+    """
+    gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
+    hsv  = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
+    thr, _ = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+    if background_is_light(rgb):
+        is_lum_text = gray < thr           # dark text on light background
+    else:
+        is_lum_text = gray > thr           # light text on dark background
+
+    is_colored = (hsv[:, :, 1] > 70) & (hsv[:, :, 2] > 90)
+    return is_lum_text | is_colored
+
+
 def extract_text_mask(rgb: np.ndarray) -> np.ndarray:
-    r, g, b = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
-    hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
-
-    # White or near-white text (lowered threshold to catch gray text too)
-    is_white   = (r > 140) & (g > 140) & (b > 140)
-    # Any saturated colored text
-    is_colored = (hsv[:, :, 1] > 60) & (hsv[:, :, 2] > 100)
-
-    mask = ((is_white | is_colored).astype(np.uint8)) * 255
+    mask = (text_pixel_mask(rgb).astype(np.uint8)) * 255
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((4, 4), np.uint8))
 
     # Remove noise blobs smaller than 0.3% of image area
